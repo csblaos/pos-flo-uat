@@ -1,10 +1,7 @@
 import withPWA from "next-pwa";
 
 const nextConfig = {
-  reactStrictMode: true,
-  experimental: {
-    serverActions: true
-  }
+  reactStrictMode: true
 };
 
 export default withPWA({
