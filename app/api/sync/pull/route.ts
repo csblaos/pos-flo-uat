@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { turso } from "@/lib/turso";
+import { getTursoClient } from "@/lib/turso";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -10,6 +10,7 @@ export async function GET(req: Request) {
     return Response.json({ error: "merchant_id is required" }, { status: 400 });
   }
 
+  const turso = getTursoClient();
   const sinceValue = since ?? "1970-01-01T00:00:00.000Z";
 
   const [products, productLots, categories, sales, saleItems, saleItemLots] = await Promise.all([

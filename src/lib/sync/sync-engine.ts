@@ -33,13 +33,14 @@ export async function enqueueOperation(params: {
 
 export async function processOutbox() {
   if (!db) return;
+  const localDb = db;
   if (!navigator.onLine) return;
 
   window.sessionStorage.setItem("syncing", "1");
   window.sessionStorage.removeItem("sync_error");
 
   try {
-    const items = await db.sync_outbox.orderBy("created_at").limit(50).toArray();
+    const items = await localDb.sync_outbox.orderBy("created_at").limit(50).toArray();
     if (items.length === 0) return;
 
     const payload = items.map((item) => ({
@@ -65,16 +66,16 @@ export async function processOutbox() {
       await res.json();
 
     if (result.processedIds?.length) {
-      await db.sync_outbox.bulkDelete(result.processedIds);
+      await localDb.sync_outbox.bulkDelete(result.processedIds);
     }
 
     if (result.failed?.length) {
       await Promise.all(
         result.failed.map(async (failure) => {
-          const item = await db.sync_outbox.get(failure.id);
+          const item = await localDb.sync_outbox.get(failure.id);
           if (!item) return;
           const retry = item.retry_count + 1;
-          await db.sync_outbox.update(failure.id, {
+          await localDb.sync_outbox.update(failure.id, {
             retry_count: retry,
             last_error: failure.error
           });
@@ -82,18 +83,18 @@ export async function processOutbox() {
       );
     }
 
-    await db.sync_state.put({ id: "sync_state", last_push_at: new Date().toISOString() });
+    await localDb.sync_state.put({ id: "sync_state", last_push_at: new Date().toISOString() });
   } catch (error) {
     window.sessionStorage.setItem(
       "sync_error",
       error instanceof Error ? error.message : "Unknown sync error"
     );
 
-    const items = await db.sync_outbox.orderBy("created_at").limit(50).toArray();
+    const items = await localDb.sync_outbox.orderBy("created_at").limit(50).toArray();
     await Promise.all(
       items.map((item) => {
         const retry = item.retry_count + 1;
-        return db.sync_outbox.update(item.id, {
+        return localDb.sync_outbox.update(item.id, {
           retry_count: retry,
           last_error: error instanceof Error ? error.message : "Unknown sync error"
         });

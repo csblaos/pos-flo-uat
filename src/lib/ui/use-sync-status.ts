@@ -12,11 +12,12 @@ export function useSyncStatus() {
 
   useEffect(() => {
     if (!db) return;
+    const localDb = db;
 
     let interval: number | undefined;
 
     const update = async () => {
-      const count = await db.sync_outbox.count();
+      const count = await localDb.sync_outbox.count();
       const syncingFlag = window.sessionStorage.getItem("syncing") === "1";
       const error = window.sessionStorage.getItem("sync_error");
 

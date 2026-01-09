@@ -1,12 +1,16 @@
 import { z } from "zod";
-import { turso } from "@/lib/turso";
+import { getTursoClient } from "@/lib/turso";
 
 const OperationSchema = z.object({
   id: z.string(),
   request_id: z.string(),
   entity: z.string(),
   action: z.enum(["create", "update", "delete"]),
-  payload: z.record(z.unknown()),
+  payload: z
+    .object({
+      merchant_id: z.string().optional()
+    })
+    .passthrough(),
   created_at: z.string()
 });
 
@@ -27,6 +31,8 @@ export async function POST(req: Request) {
 
   const processedIds: string[] = [];
   const failed: Array<{ id: string; error: string }> = [];
+
+  const turso = getTursoClient();
 
   for (const op of parsed.data.operations) {
     try {
