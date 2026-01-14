@@ -6,16 +6,16 @@ export interface Permission {
 }
 
 export function canAccess(
-  permissions: Permission[],
-  feature: string,
-  action: PermissionAction
+	permissions: Permission[],
+	feature: string,
+	action: PermissionAction
 ): boolean {
-  return permissions.some((perm) => perm.feature === feature && perm.action === action);
+	return permissions.some((perm) => perm.feature === feature && perm.action === action);
 }
 
 export function filterTabs(
-  permissions: Permission[],
-  tabs: Array<{ href: string; feature: string }>
+	permissions: Permission[],
+	tabs: Array<{ href: string; feature: string }>
 ) {
-  return tabs.filter((tab) => canAccess(permissions, tab.feature, "view"));
+	return tabs.filter((tab) => canAccess(permissions, tab.feature, "view"));
 }

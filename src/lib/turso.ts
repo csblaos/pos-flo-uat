@@ -1,20 +1,18 @@
-import { createClient, type Client } from "@libsql/client";
+import { createClient } from "@libsql/client";
 
-let cached: Client | null = null;
+const tursoUrl = process.env.TURSO_DATABASE_URL;
+
+if (!tursoUrl) {
+	throw new Error("Missing TURSO_DATABASE_URL env var");
+}
+
+export const turso = createClient({
+	url: tursoUrl,
+	authToken: process.env.TURSO_AUTH_TOKEN
+});
+
+console.log("[turso] client initialized");
 
 export function getTursoClient() {
-  if (cached) return cached;
-  const url = process.env.TURSO_DATABASE_URL;
-  const authToken = process.env.TURSO_AUTH_TOKEN;
-
-  if (!url) {
-    throw new Error("Missing TURSO_DATABASE_URL env var");
-  }
-
-  cached = createClient({
-    url,
-    authToken
-  });
-
-  return cached;
+	return turso;
 }

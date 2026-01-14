@@ -7,6 +7,7 @@ export interface Merchant {
   name: string;
   created_at: string;
   updated_at: string;
+  deleted_at?: string | null;
 }
 
 export interface User {
@@ -137,42 +138,42 @@ export interface SyncState {
 }
 
 class PosDexie extends Dexie {
-  merchants!: Table<Merchant>;
-  users!: Table<User>;
-  roles!: Table<Role>;
-  permissions!: Table<Permission>;
-  role_permissions!: Table<RolePermission>;
-  user_roles!: Table<UserRole>;
-  categories!: Table<Category>;
-  products!: Table<Product>;
-  product_lots!: Table<ProductLot>;
-  sales!: Table<Sale>;
-  sale_items!: Table<SaleItem>;
-  sale_item_lots!: Table<SaleItemLot>;
-  sync_outbox!: Table<SyncOutbox>;
-  sync_logs!: Table<SyncLog>;
-  sync_state!: Table<SyncState>;
+	merchants!: Table<Merchant>;
+	users!: Table<User>;
+	roles!: Table<Role>;
+	permissions!: Table<Permission>;
+	role_permissions!: Table<RolePermission>;
+	user_roles!: Table<UserRole>;
+	categories!: Table<Category>;
+	products!: Table<Product>;
+	product_lots!: Table<ProductLot>;
+	sales!: Table<Sale>;
+	sale_items!: Table<SaleItem>;
+	sale_item_lots!: Table<SaleItemLot>;
+	sync_outbox!: Table<SyncOutbox>;
+	sync_logs!: Table<SyncLog>;
+	sync_state!: Table<SyncState>;
 
-  constructor() {
-    super("pos_flo");
-    this.version(1).stores({
-      merchants: "id",
-      users: "id, merchant_id",
-      roles: "id, merchant_id",
-      permissions: "id, feature, action",
-      role_permissions: "id, role_id, permission_id",
-      user_roles: "id, user_id, role_id",
-      categories: "id, merchant_id, updated_at, deleted_at",
-      products: "id, merchant_id, barcode, updated_at, deleted_at",
-      product_lots: "id, product_id, received_at, updated_at, deleted_at",
-      sales: "id, merchant_id, created_at, updated_at",
-      sale_items: "id, sale_id, product_id",
-      sale_item_lots: "id, sale_item_id, product_lot_id",
-      sync_outbox: "id, merchant_id, entity, created_at, retry_count",
-      sync_logs: "id, merchant_id, created_at, status",
-      sync_state: "id"
-    });
-  }
+	constructor() {
+		super("pos_flo");
+		this.version(1).stores({
+			merchants: "id",
+			users: "id, merchant_id",
+			roles: "id, merchant_id",
+			permissions: "id, feature, action",
+			role_permissions: "id, role_id, permission_id",
+			user_roles: "id, user_id, role_id",
+			categories: "id, merchant_id, updated_at, deleted_at",
+			products: "id, merchant_id, barcode, updated_at, deleted_at",
+			product_lots: "id, product_id, received_at, updated_at, deleted_at",
+			sales: "id, merchant_id, created_at, updated_at",
+			sale_items: "id, sale_id, product_id",
+			sale_item_lots: "id, sale_item_id, product_lot_id",
+			sync_outbox: "id, merchant_id, entity, created_at, retry_count",
+			sync_logs: "id, merchant_id, created_at, status",
+			sync_state: "id"
+		});
+	}
 }
 
 export const db = typeof window === "undefined" ? null : new PosDexie();
