@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
+import InstallAppButton from "../../components/InstallAppButton";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -69,6 +70,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Button variant="secondary" size="sm" disabled={!network.online}>
                 Sync
               </Button>
+              <div className="w-full sm:w-auto">
+                <InstallAppButton />
+              </div>
             </div>
           </div>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
