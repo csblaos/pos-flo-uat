@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Thai, Space_Grotesk } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
 
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="th" className={`${bodyFont.variable} ${displayFont.variable}`}>
       <body className="font-body">
         <AppShell>{children}</AppShell>
+        <Analytics />
       </body>
     </html>
   );
