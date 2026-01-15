@@ -5,6 +5,10 @@ import { withRequestLogging } from "@/lib/request-logger";
 
 export const runtime = "nodejs";
 
+function formatSqliteDate(date: Date) {
+	return date.toISOString().replace("T", " ").replace("Z", "").split(".")[0] ?? "";
+}
+
 export const GET = withRequestLogging(async (req: Request) => {
 	const { searchParams } = new URL(req.url);
 	const merchantId = z.string().min(1).optional().parse(searchParams.get("merchant_id") ?? undefined);
@@ -70,7 +74,7 @@ export const PUT = withRequestLogging(async (req: Request) => {
 		where: { id },
 		data: {
 			name,
-			updated_at: new Date()
+			updated_at: formatSqliteDate(new Date())
 		}
 	});
 
@@ -99,8 +103,8 @@ export const DELETE = withRequestLogging(async (req: Request) => {
 	await prisma.merchant.update({
 		where: { id: merchantId },
 		data: {
-			deleted_at: new Date(),
-			updated_at: new Date()
+			deleted_at: formatSqliteDate(new Date()),
+			updated_at: formatSqliteDate(new Date())
 		}
 	});
 
