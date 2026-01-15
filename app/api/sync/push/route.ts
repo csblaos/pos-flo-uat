@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { turso } from "@/lib/turso";
+import { withRequestLogging } from "@/lib/request-logger";
 
 const OperationSchema = z.object({
 	id: z.string(),
@@ -19,7 +20,7 @@ const PushSchema = z.object({
 	operations: z.array(OperationSchema).min(1)
 });
 
-export async function POST(req: Request) {
+export const POST = withRequestLogging(async (req: Request) => {
 	const body = await req.json();
 	const parsed = PushSchema.safeParse(body);
 
@@ -69,4 +70,4 @@ export async function POST(req: Request) {
 	}
 
 	return Response.json({ processedIds, failed });
-}
+});

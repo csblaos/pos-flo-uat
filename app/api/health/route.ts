@@ -1,3 +1,5 @@
-export async function GET() {
-  return Response.json({ ok: true, time: new Date().toISOString() });
-}
+import { withRequestLogging } from "@/lib/request-logger";
+
+export const GET = withRequestLogging(async () => {
+	return Response.json({ ok: true, time: new Date().toISOString() });
+});

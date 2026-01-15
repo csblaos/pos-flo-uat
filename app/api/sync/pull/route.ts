@@ -1,8 +1,9 @@
 import { z } from "zod";
 
+import { withRequestLogging } from "@/lib/request-logger";
 import { turso } from "@/lib/turso";
 
-export async function GET(req: Request) {
+export const GET = withRequestLogging(async (req: Request) => {
 	const { searchParams } = new URL(req.url);
 	const since = z.string().optional().parse(searchParams.get("since") ?? undefined);
 	const merchantId = searchParams.get("merchant_id");
@@ -49,4 +50,4 @@ export async function GET(req: Request) {
 		sale_items: saleItems.rows,
 		sale_item_lots: saleItemLots.rows
 	});
-}
+});

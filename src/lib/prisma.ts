@@ -1,8 +1,11 @@
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { PrismaClient } from "@prisma/client";
-import { createClient } from "@libsql/client";
 
 const databaseProvider = process.env.DATABASE_PROVIDER ?? "turso";
+
+if (!process.env.DATABASE_URL) {
+	process.env.DATABASE_URL = "file:./dev.db";
+}
 
 function createTursoClient() {
 	const tursoUrl = process.env.TURSO_DATABASE_URL;
@@ -12,12 +15,10 @@ function createTursoClient() {
 	}
 
 	return new PrismaClient({
-		adapter: new PrismaLibSql(
-			createClient({
-				url: tursoUrl,
-				authToken: process.env.TURSO_AUTH_TOKEN
-			})
-		)
+		adapter: new PrismaLibSql({
+			url: tursoUrl,
+			authToken: process.env.TURSO_AUTH_TOKEN
+		})
 	});
 }
 
@@ -32,3 +33,12 @@ export const prisma =
 if (process.env.NODE_ENV !== "production") {
 	globalForPrisma.prisma = prisma;
 }
+
+void prisma
+	.$connect()
+	.then(() => {
+		console.log("[prisma] connected");
+	})
+	.catch((error) => {
+		console.error("[prisma] connection failed", error);
+	});

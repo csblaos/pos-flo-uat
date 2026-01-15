@@ -1,10 +1,11 @@
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
+import { withRequestLogging } from "@/lib/request-logger";
 
 export const runtime = "nodejs";
 
-export async function GET(req: Request) {
+export const GET = withRequestLogging(async (req: Request) => {
 	const { searchParams } = new URL(req.url);
 	const merchantId = z.string().min(1).optional().parse(searchParams.get("merchant_id") ?? undefined);
 
@@ -25,9 +26,9 @@ export async function GET(req: Request) {
 	}
 
 	return Response.json(merchant);
-}
+});
 
-export async function POST(req: Request) {
+export const POST = withRequestLogging(async (req: Request) => {
 	const body = await req.json();
 	const { id, name } = z
 		.object({
@@ -46,9 +47,9 @@ export async function POST(req: Request) {
 	});
 
 	return Response.json(merchant, { status: 201 });
-}
+});
 
-export async function PUT(req: Request) {
+export const PUT = withRequestLogging(async (req: Request) => {
 	const body = await req.json();
 	const { id, name } = z
 		.object({
@@ -74,9 +75,9 @@ export async function PUT(req: Request) {
 	});
 
 	return Response.json(updated);
-}
+});
 
-export async function DELETE(req: Request) {
+export const DELETE = withRequestLogging(async (req: Request) => {
 	const body = await req.json().catch(() => ({}));
 	const { searchParams } = new URL(req.url);
 	const merchantId =
@@ -104,4 +105,4 @@ export async function DELETE(req: Request) {
 	});
 
 	return Response.json({ ok: true });
-}
+});
