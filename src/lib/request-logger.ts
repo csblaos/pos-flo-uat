@@ -289,7 +289,6 @@ export function withRequestLogging(handler: Handler): Handler {
 
 			response.headers.set("request-id", requestId);
 
-
 			if (response.status >= 400) {
 				Log.assignLog(requestId, {
 					message: "request failed",
@@ -312,7 +311,6 @@ export function withRequestLogging(handler: Handler): Handler {
 			Log.printLog(requestId);
 			loggedOncePaths.add(url.pathname);
 
-
 			return response;
 		} catch (error) {
 			Log.assignLog(requestId, {
@@ -326,10 +324,8 @@ export function withRequestLogging(handler: Handler): Handler {
 				responseDuration: (Date.now() - start) / 1000
 			});
 
-
 			Log.printLog(requestId);
 			loggedOncePaths.add(url.pathname);
-
 
 			throw error;
 		}

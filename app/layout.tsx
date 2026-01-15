@@ -28,7 +28,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th" className={`${bodyFont.variable} ${displayFont.variable}`}>
+    <html lang="en" className={`${bodyFont.variable} ${displayFont.variable} dark`}>
       <body className="font-body">
         <AppShell>{children}</AppShell>
         <Analytics />
