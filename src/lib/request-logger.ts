@@ -58,7 +58,6 @@ const EXCLUDED_HEADERS = new Set([
 
 type Handler = (req: Request) => Promise<Response> | Response;
 
-const LOG_ONCE_PATHS = new Set(["/api/health"]);
 const loggedOncePaths = new Set<string>();
 
 export type IpInfo = {
@@ -101,10 +100,10 @@ export function attachReqIpInfo(req: Request) {
 		browser: hints.browser,
 		geo: geo
 			? {
-					...geo,
-					countryName: getCountryName(geo.countryCode),
-					regionName: getRegionName(geo.countryCode, geo.regionCode)
-				}
+				...geo,
+				countryName: getCountryName(geo.countryCode),
+				regionName: getRegionName(geo.countryCode, geo.regionCode)
+			}
 			: undefined
 	};
 
@@ -271,9 +270,6 @@ export function withRequestLogging(handler: Handler): Handler {
 
 		Log.assignLog(requestId, requestLog);
 
-		const shouldLog =
-			!LOG_ONCE_PATHS.has(url.pathname) || !loggedOncePaths.has(url.pathname);
-
 		const requestBody = await parseJsonBody(req.clone());
 		if (requestBody !== undefined) {
 			Log.assignLog(requestId, { body: redactObject(requestBody) });
@@ -293,29 +289,29 @@ export function withRequestLogging(handler: Handler): Handler {
 
 			response.headers.set("request-id", requestId);
 
-			if (shouldLog) {
-				if (response.status >= 400) {
-					Log.assignLog(requestId, {
-						message: "request failed",
-						isError: true,
-						errorMessage:
-							(responseBody &&
-								typeof responseBody === "object" &&
-								("error" in responseBody || "message" in responseBody) &&
-								((responseBody as { error?: unknown }).error ??
-									(responseBody as { message?: unknown }).message)) ??
-							"unknown",
-						// errorStack: undefined
-					});
-				} else {
-					Log.assignLog(requestId, {
-						message: "request completed",
-						isError: false
-					});
-				}
-				Log.printLog(requestId);
-				loggedOncePaths.add(url.pathname);
+
+			if (response.status >= 400) {
+				Log.assignLog(requestId, {
+					message: "request failed",
+					isError: true,
+					errorMessage:
+						(responseBody &&
+							typeof responseBody === "object" &&
+							("error" in responseBody || "message" in responseBody) &&
+							((responseBody as { error?: unknown }).error ??
+								(responseBody as { message?: unknown }).message)) ??
+						"unknown",
+					// errorStack: undefined
+				});
+			} else {
+				Log.assignLog(requestId, {
+					message: "request completed",
+					isError: false
+				});
 			}
+			Log.printLog(requestId);
+			loggedOncePaths.add(url.pathname);
+
 
 			return response;
 		} catch (error) {
@@ -330,10 +326,10 @@ export function withRequestLogging(handler: Handler): Handler {
 				responseDuration: (Date.now() - start) / 1000
 			});
 
-			if (shouldLog) {
-				Log.printLog(requestId);
-				loggedOncePaths.add(url.pathname);
-			}
+
+			Log.printLog(requestId);
+			loggedOncePaths.add(url.pathname);
+
 
 			throw error;
 		}
