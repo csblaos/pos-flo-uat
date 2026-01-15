@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Merchant {
+  id         String  @id
+  name       String
+  created_at String  @default(dbgenerated("datetime('now')"))
+  updated_at String  @default(dbgenerated("datetime('now')"))
+  deleted_at String?
+
+  @@map("merchant")
+}

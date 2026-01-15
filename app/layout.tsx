@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Thai, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -19,7 +19,10 @@ const displayFont = Space_Grotesk({
 export const metadata: Metadata = {
   title: "POS + Stock + Report",
   description: "Offline-first POS for small businesses",
-  manifest: "/manifest.json",
+  manifest: "/manifest.json"
+};
+
+export const viewport: Viewport = {
   themeColor: "#3d5a80"
 };
 
