@@ -1,27 +1,106 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { db, type Product } from "@/lib/db";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CheckCircle2, Minus, Plus, Search, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectItem } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle
+} from "@/components/ui/sheet";
 
-interface CartLine {
+type Product = {
+  id: string;
+  name: string;
+  barcode: string;
+  merchantId: string;
+  categoryId: string;
+  price: number;
+  cost: number;
+  stockQty: number;
+  updatedAt: string;
+};
+
+type CartLine = {
   product: Product;
   qty: number;
-}
+};
+
+const products: Product[] = [
+  {
+    id: "p-001",
+    name: "Arabica Blend 250g",
+    barcode: "8859001001",
+    merchantId: "m-001",
+    categoryId: "c-001",
+    price: 190,
+    cost: 110,
+    stockQty: 28,
+    updatedAt: "2024-05-20"
+  },
+  {
+    id: "p-002",
+    name: "Cold Brew Bottle",
+    barcode: "8859001002",
+    merchantId: "m-001",
+    categoryId: "c-002",
+    price: 120,
+    cost: 68,
+    stockQty: 16,
+    updatedAt: "2024-05-20"
+  },
+  {
+    id: "p-003",
+    name: "Oat Milk 1L",
+    barcode: "8859001003",
+    merchantId: "m-001",
+    categoryId: "c-003",
+    price: 95,
+    cost: 52,
+    stockQty: 42,
+    updatedAt: "2024-05-19"
+  },
+  {
+    id: "p-004",
+    name: "Butter Croissant",
+    barcode: "8859001004",
+    merchantId: "m-001",
+    categoryId: "c-004",
+    price: 65,
+    cost: 32,
+    stockQty: 14,
+    updatedAt: "2024-05-19"
+  }
+];
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "THB",
+    maximumFractionDigits: 0
+  }).format(value);
 
 export default function PosPage() {
   const [barcode, setBarcode] = useState("");
+  const [search, setSearch] = useState("");
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [toast, setToast] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  const addToCart = (product: Product) => {
+  const handleAddToCart = (product: Product) => {
     setCart((prev) => {
       const existing = prev.find((line) => line.product.id === product.id);
       if (existing) {
@@ -33,104 +112,239 @@ export default function PosPage() {
     });
   };
 
-  const handleScan = async () => {
-    if (!barcode.trim() || !db) return;
-    const product = await db.products.where("barcode").equals(barcode.trim()).first();
+  const handleScan = () => {
+    if (!barcode.trim()) return;
+    const product = products.find((item) => item.barcode === barcode.trim());
     if (product) {
-      addToCart(product);
+      handleAddToCart(product);
     }
     setBarcode("");
     inputRef.current?.focus();
   };
 
+  const adjustQty = (id: string, delta: number) => {
+    setCart((prev) =>
+      prev
+        .map((line) =>
+          line.product.id === id ? { ...line, qty: Math.max(1, line.qty + delta) } : line
+        )
+        .filter((line) => line.qty > 0)
+    );
+  };
+
+  const removeItem = (id: string) => {
+    setCart((prev) => prev.filter((line) => line.product.id !== id));
+  };
+
+  const subtotal = useMemo(
+    () => cart.reduce((sum, line) => sum + line.product.price * line.qty, 0),
+    [cart]
+  );
+
+  const filteredProducts = useMemo(() => {
+    if (!search.trim()) return products;
+    const query = search.toLowerCase();
+    return products.filter(
+      (item) => item.name.toLowerCase().includes(query) || item.barcode.includes(query)
+    );
+  }, [search]);
+
+  const confirmSale = () => {
+    setCart([]);
+    setIsCheckoutOpen(false);
+    setToast("Sale completed. Receipt sent to queue.");
+    window.setTimeout(() => setToast(null), 2400);
+  };
+
   return (
-    <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr]">
-      <Card className="glass-panel">
+    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <Card className="surface-card">
         <CardHeader className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-wave-500">POS</p>
-              <CardTitle className="font-display text-2xl text-ink-800">ขายสินค้าเร็ว ๆ</CardTitle>
+              <p className="text-xs uppercase tracking-[0.3em] text-white/50">POS</p>
+              <CardTitle className="font-display text-2xl text-white">Fast Checkout</CardTitle>
             </div>
-            <Badge variant="secondary">Quick Scan</Badge>
+            <Badge variant="secondary">Live Scan</Badge>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs text-ink-400">
-            <span className="chip">Offline-ready</span>
-            <span className="chip">FIFO Lots</span>
-            <span className="chip">Auto sync</span>
-          </div>
+          <p className="text-sm text-white/60">
+            Always-on barcode entry with a touch-friendly fallback search.
+          </p>
         </CardHeader>
         <CardContent className="space-y-5">
-          <div className="space-y-3">
-            <label className="text-sm font-semibold text-ink-600">สแกนบาร์โค้ด</label>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-white">Scan Barcode</label>
             <Input
               ref={inputRef}
               className="h-12 text-lg"
-              placeholder="ยิงบาร์โค้ดหรือพิมพ์รหัสสินค้าแล้ว Enter"
+              placeholder="Scan or type barcode, then press Enter"
               value={barcode}
               onChange={(event) => setBarcode(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
                   event.preventDefault();
-                  void handleScan();
+                  handleScan();
                 }
               }}
             />
-            <div className="flex flex-wrap gap-2 text-xs text-ink-400">
-              <Badge variant="secondary">HID Keyboard</Badge>
-              <span>ยิงบาร์โค้ดแล้ว Enter เพื่อเพิ่มเข้าตะกร้า</span>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-white">Search Product</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-white/40" />
+              <Input
+                className="h-11 pl-9"
+                placeholder="Find by name or barcode"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </div>
+            <div className="grid gap-2 md:grid-cols-2">
+              {filteredProducts.slice(0, 4).map((product) => (
+                <button
+                  key={product.id}
+                  type="button"
+                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10"
+                  onClick={() => handleAddToCart(product)}
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-white">{product.name}</p>
+                    <p className="text-xs text-white/50">{product.barcode}</p>
+                  </div>
+                  <span className="text-sm font-semibold text-cyan-300">
+                    {formatCurrency(product.price)}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <div className="stat-card border-dashed">
-              <p className="text-xs font-semibold text-ink-500">สินค้าแนะนำ</p>
-              <p className="mt-2 text-sm font-semibold text-ink-700">ขายดีวันนี้</p>
-              <p className="mt-1 text-xs text-ink-400">แสดงรายการขายดี/ล่าสุดที่ sync แล้ว</p>
+            <div className="surface-muted border-dashed p-4">
+              <p className="text-xs font-semibold text-white/50">Scanner tips</p>
+              <p className="mt-2 text-sm text-white">HID barcode + Enter works best.</p>
             </div>
-            <div className="stat-card border-dashed">
-              <p className="text-xs font-semibold text-ink-500">คีย์ลัด</p>
-              <p className="mt-2 text-sm font-semibold text-ink-700">ยิงแล้วขึ้นทันที</p>
-              <p className="mt-1 text-xs text-ink-400">รองรับ HID Keyboard: ยิงบาร์โค้ดแล้ว Enter</p>
+            <div className="surface-muted border-dashed p-4">
+              <p className="text-xs font-semibold text-white/50">Shift status</p>
+              <p className="mt-2 text-sm text-white">2 terminals active now.</p>
             </div>
           </div>
         </CardContent>
       </Card>
-      <Card className="glass-panel">
-        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+
+      <Card className="surface-card">
+        <CardHeader className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-wave-500">Cart</p>
-            <CardTitle className="font-display text-xl text-ink-800">ตะกร้าสินค้า</CardTitle>
+            <p className="text-xs uppercase tracking-[0.3em] text-white/50">Cart</p>
+            <CardTitle className="font-display text-xl text-white">Current Sale</CardTitle>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary">{cart.length} รายการ</Badge>
-            <Button className="rounded-full">Checkout</Button>
-          </div>
+          <Badge variant="secondary">{cart.length} items</Badge>
         </CardHeader>
         <CardContent className="space-y-4">
           {cart.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-ink-200 p-6 text-center text-sm text-ink-400">
-              ยังไม่มีสินค้าในตะกร้า
+            <div className="rounded-2xl border border-dashed border-white/10 p-6 text-center text-sm text-white/50">
+              Scan a product to start a sale.
             </div>
           ) : (
-            cart.map((line) => (
-              <div key={line.product.id} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-ink-700">{line.product.name}</p>
-                  <p className="text-xs text-ink-400">฿{line.product.current_sell_price}</p>
+            <div className="space-y-3">
+              {cart.map((line) => (
+                <div
+                  key={line.product.id}
+                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-white">{line.product.name}</p>
+                    <p className="text-xs text-white/50">
+                      {formatCurrency(line.product.price)} • {line.product.barcode}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      onClick={() => adjustQty(line.product.id, -1)}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-6 text-center text-sm font-semibold text-white">
+                      {line.qty}
+                    </span>
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      onClick={() => adjustQty(line.product.id, 1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeItem(line.product.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <Badge variant="secondary">x{line.qty}</Badge>
-              </div>
-            ))
-          )}
-          <div className="stat-card">
-            <div className="flex items-center justify-between text-sm font-semibold text-ink-700">
-              <span>รวมสุทธิ</span>
-              <span>฿0.00</span>
+              ))}
             </div>
-            <p className="mt-1 text-xs text-ink-400">อัปเดตทันทีแม้ Offline</p>
+          )}
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between text-sm font-semibold text-white">
+              <span>Subtotal</span>
+              <span>{formatCurrency(subtotal)}</span>
+            </div>
+            <p className="mt-1 text-xs text-white/50">Taxes included. Auto-updates offline.</p>
           </div>
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={() => setIsCheckoutOpen(true)}
+            disabled={cart.length === 0}
+          >
+            Checkout
+          </Button>
         </CardContent>
       </Card>
+
+      <Sheet open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
+        <SheetContent side="bottom" className="rounded-t-3xl">
+          <SheetHeader>
+            <SheetTitle>Checkout</SheetTitle>
+            <SheetDescription>Select payment method and confirm sale.</SheetDescription>
+          </SheetHeader>
+          <div className="mt-4 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-white">Payment Method</label>
+              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="transfer">Transfer</SelectItem>
+              </Select>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between text-sm font-semibold text-white">
+                <span>Total</span>
+                <span>{formatCurrency(subtotal)}</span>
+              </div>
+              <p className="mt-1 text-xs text-white/50">Receipt will be queued for sync.</p>
+            </div>
+          </div>
+          <SheetFooter className="mt-6">
+            <Button variant="secondary" onClick={() => setIsCheckoutOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmSale}>
+              <CheckCircle2 className="h-4 w-4" />
+              Confirm Sale
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      {toast ? (
+        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full border border-emerald-400/30 bg-emerald-500/20 px-4 py-2 text-xs text-emerald-200">
+          {toast}
+        </div>
+      ) : null}
     </div>
   );
 }

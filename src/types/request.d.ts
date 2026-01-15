@@ -5,5 +5,6 @@ export {};
 declare global {
 	interface Request {
 		ipInfo?: IpInfo;
+		requestId?: string;
 	}
 }

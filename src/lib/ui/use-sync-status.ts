@@ -14,8 +14,6 @@ export function useSyncStatus() {
     if (!db) return;
     const localDb = db;
 
-    let interval: number | undefined;
-
     const update = async () => {
       const count = await localDb.sync_outbox.count();
       const syncingFlag = window.sessionStorage.getItem("syncing") === "1";
@@ -36,7 +34,7 @@ export function useSyncStatus() {
     };
 
     update();
-    interval = window.setInterval(update, 4000);
+    const interval = window.setInterval(update, 4000);
 
     return () => window.clearInterval(interval);
   }, []);

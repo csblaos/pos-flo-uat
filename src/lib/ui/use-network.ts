@@ -21,8 +21,6 @@ export function useNetworkStatus() {
   }, []);
 
   useEffect(() => {
-    let interval: number | undefined;
-
     async function heartbeat() {
       if (!navigator.onLine) {
         setGrade("offline");
@@ -53,7 +51,7 @@ export function useNetworkStatus() {
     }
 
     heartbeat();
-    interval = window.setInterval(heartbeat, 12000);
+    const interval = window.setInterval(heartbeat, 12000);
     return () => window.clearInterval(interval);
   }, []);
 
