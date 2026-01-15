@@ -28,6 +28,7 @@ export default function InstallAppButton() {
   const [canPromptInstall, setCanPromptInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const showDebug = process.env.NODE_ENV !== "production";
 
   const isIOS = useMemo(() => {
     if (typeof navigator === "undefined") return false;
@@ -82,6 +83,14 @@ export default function InstallAppButton() {
 
   return (
     <>
+      {showDebug ? (
+        <div className="mb-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
+          <span className="font-semibold text-white">Install Debug</span>
+          <span className="ml-2">isInstalled: {String(isInstalled)}</span>
+          <span className="ml-2">isIOS: {String(isIOS)}</span>
+          <span className="ml-2">canPromptInstall: {String(canPromptInstall)}</span>
+        </div>
+      ) : null}
       <Button
         size="lg"
         className="w-full rounded-2xl text-base shadow-lg shadow-cyan-500/20 md:w-auto"
