@@ -19,7 +19,11 @@ const displayFont = Space_Grotesk({
 export const metadata: Metadata = {
   title: "POS + Stock + Report",
   description: "Offline-first POS for small businesses",
-  manifest: "/manifest.json"
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/favicon.ico",
+    apple: "/icons/apple-touch-icon.png"
+  }
 };
 
 export const viewport: Viewport = {
