@@ -6,6 +6,36 @@
   color-scheme: dark;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 140px;
+}
+
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: 112px;
+  }
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.testimonial-marquee {
+  animation: marquee-scroll 28s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .testimonial-marquee {
+    animation: none;
+  }
+}
+
 .app-shell {
   min-height: 100vh;
   background:

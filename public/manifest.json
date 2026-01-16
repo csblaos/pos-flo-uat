@@ -1,6 +1,6 @@
 {
-  "name": "POS + Stock + Report",
-  "short_name": "POS Flo",
+  "name": "Flo X POS",
+  "short_name": "Fld X",
   "description": "Offline-first POS for small businesses",
   "start_url": "/pos",
   "display": "standalone",

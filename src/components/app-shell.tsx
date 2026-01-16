@@ -27,10 +27,19 @@ const merchants = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isLanding = pathname === "/";
   const network = useNetworkStatus();
   const [merchantId, setMerchantId] = useState(merchants[0]?.id ?? "");
   const showSearch = pathname === "/pos" || pathname === "/stock";
   const searchPlaceholder = pathname === "/pos" ? "Search products or barcode" : "Search stock";
+
+  if (isLanding) {
+    return (
+      <div className="app-shell text-white">
+        <main className="mx-auto w-full max-w-6xl px-0">{children}</main>
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell text-white">
