@@ -59,7 +59,7 @@ module.exports = {
 		"no-async-promise-executor": 1,
 		"prefer-const": 1
 	},
-	ignorePatterns: ["sequelize-auto.js"],
+	ignorePatterns: ["sequelize-auto.js", "public/sw.js"],
 	settings: {
 		typescript: true,
 		node: {
